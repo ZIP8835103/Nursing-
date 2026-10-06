@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Physio Nurse</title>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--mint:#bfeee0;--mint2:#e6faf3;--mint3:#7fd8bd;--deep:#2a9d8f;--ink:#25524b;--card:#fff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:'Prompt','Noto Sans Thai',system-ui,sans-serif;background:linear-gradient(160deg,var(--mint2),var(--mint));color:var(--ink);min-height:100vh}
+.wrap{max-width:820px;margin:0 auto;padding:24px 18px 60px}
+h1{font-size:30px;margin:6px 0;text-align:center}
+h2{font-size:22px;margin:0 0 12px}
+.sub{text-align:center;opacity:.8;margin:0 0 18px}
+.card{background:var(--card);border-radius:26px;padding:22px;box-shadow:0 8px 24px rgba(42,157,143,.15);margin-bottom:16px}
+label{display:block;font-weight:500;margin:12px 0 6px}
+input,select,textarea{width:100%;font:inherit;font-size:18px;padding:14px 16px;border:2px solid var(--mint);border-radius:16px;background:var(--mint2);color:var(--ink)}
+input:focus,textarea:focus{outline:none;border-color:var(--deep)}
+button{font:inherit;font-size:18px;font-weight:500;border:none;border-radius:999px;padding:14px 26px;background:var(--deep);color:#fff;cursor:pointer;box-shadow:0 4px 0 #1f7a6f}
+button:active{transform:translateY(2px);box-shadow:0 2px 0 #1f7a6f}
+button.ghost{background:#fff;color:var(--deep);border:2px solid var(--mint3);box-shadow:none}
+button.danger{background:#e76f6f;box-shadow:0 4px 0 #b84f4f}
+button.sm{font-size:15px;padding:8px 16px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.center{text-align:center}
+.hint{font-size:14px;opacity:.75}
+.face{width:150px;height:150px;margin:6px auto;display:block}
+.big{font-size:44px;font-weight:600;margin:0}
+.pill{display:inline-block;padding:6px 16px;border-radius:999px;font-weight:600;color:#fff}
+.stepbar{display:flex;gap:8px;margin-bottom:14px}
+.stepbar div{flex:1;height:10px;border-radius:99px;background:var(--mint)}
+.stepbar .on{background:var(--deep)}
+.camBox{position:relative;border-radius:22px;overflow:hidden;background:#123;aspect-ratio:4/3;width:100%}
+.camBox video{width:100%;height:100%;object-fit:cover}
+.mirror{transform:scaleX(-1)}
+.badge{position:absolute;top:12px;left:12px;background:rgba(231,111,111,.95);color:#fff;border-radius:999px;padding:6px 14px;font-weight:600;display:none}
+.timer{position:absolute;right:14px;bottom:10px;font-size:64px;font-weight:600;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.5)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.chip{padding:8px 14px;border-radius:999px;background:var(--mint2);border:2px solid var(--mint);font-size:15px;cursor:pointer}
+.chip.on{background:var(--deep);color:#fff;border-color:var(--deep)}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{padding:10px 8px;border-bottom:1px solid var(--mint);text-align:left;vertical-align:top}
+.ok{color:#1b8a5a;font-weight:600}.bad{color:#d1495b;font-weight:600}
+video.rev{width:100%;border-radius:16px;background:#000;margin-top:6px}
+.hidden{display:none!important}
+.adminLink{text-align:center;margin-top:18px}
+.adminLink a{color:var(--deep);font-size:14px;text-decoration:underline;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🌿 Physio Nurse</h1>
+  <p class="sub">ประเมินและลดอาการปวดคอ บ่า ไหล่ สำหรับนักศึกษาพยาบาลชั้นปีที่ 1</p>
+
+  <!-- หน้า 1 -->
+  <section id="p1" class="card">
+    <h2>ลงชื่อเข้าใช้</h2>
+    <label>ชื่อ-นามสกุล</label><input id="name" placeholder="เช่น สมหญิง ใจดี" autocomplete="off">
+    <label>เลขที่</label><input id="no" type="number" inputmode="numeric" placeholder="เช่น 12">
+    <label>คะแนนรวมการประเมินอาการปวด (0–20)</label>
+    <input id="score" type="number" inputmode="decimal" min="0" max="20" step="0.5" placeholder="เช่น 8">
+    <p class="hint">ระบบจะนำคะแนนรวมมาหารด้วย 5 เป็นค่าเฉลี่ย</p>
+    <p id="e1" class="bad"></p>
+    <div class="center"><button onclick="goAssess()">ถัดไป ➜</button></div>
+    <div class="adminLink"><a onclick="openAdminLogin()">สำหรับผู้ดูแลระบบ (Admin)</a></div>
+  </section>
+
+  <!-- หน้า 2 -->
+  <section id="p2" class="card center hidden">
+    <h2>ผลการประเมินของ <span id="who"></span></h2>
+    <div id="faceBox"></div>
+    <p class="hint">ค่าเฉลี่ยของคะแนนการประเมิน</p>
+    <p class="big" id="avg"></p>
+    <p><span class="pill" id="lvPill"></span></p>
+    <p id="lvText" style="font-size:20px"></p>
+    <div class="row" style="justify-content:center">
+      <button class="ghost" onclick="show('p1')">⬅ กลับ</button>
+      <button onclick="startActivity()">เริ่มกิจกรรม ➜</button>
+    </div>
+  </section>
+
+  <!-- หน้า 3 -->
+  <section id="p3" class="hidden">
+    <div class="card">
+      <div class="stepbar" id="stepbar"></div>
+      <h2 id="poseTitle"></h2>
+      <p id="poseText" style="font-size:19px;margin:0 0 12px"></p>
+      <div class="camBox">
+        <video id="cam" playsinline muted autoplay class="mirror"></video>
+        <div class="badge" id="rec">● กำลังบันทึก</div>
+        <div class="timer" id="timer"></div>
+      </div>
+      <div class="chips" id="filters"></div>
+      <div class="row">
+        <button class="ghost sm" onclick="toggleMirror()">↔ กลับด้านภาพ</button>
+        <button class="ghost sm" onclick="flipCam()">🔄 สลับกล้องหน้า/หลัง</button>
+      </div>
+      <p id="camErr" class="bad"></p>
+      <div class="center" style="margin-top:12px">
+        <button id="goBtn" onclick="startPose()">▶ เริ่มทำท่านี้</button>
+      </div>
+      <p class="hint center">ระบบจะบันทึกวิดีโอขณะทำท่า เพื่อให้ผู้ดูแลตรวจสอบความถูกต้อง</p>
+    </div>
+  </section>
+
+  <!-- ประเมินหลังทำกิจกรรม -->
+  <section id="pPost" class="card center hidden">
+    <div style="font-size:60px">🌿</div>
+    <h2>ประเมินอาการปวดหลังทำกิจกรรม</h2>
+    <p>ตอนนี้คุณปวดคอ บ่า ไหล่ อยู่ในระดับใด</p>
+    <label>คะแนนรวมหลังทำกิจกรรม (0–20)</label>
+    <input id="postScore" type="number" inputmode="decimal" min="0" max="20" step="0.5" placeholder="เช่น 5">
+    <p class="hint">ประเมินด้วยแบบเดียวกับตอนก่อนทำกิจกรรม</p>
+    <p id="ePost" class="bad"></p>
+    <button onclick="submitPost()">บันทึกและเสร็จสิ้น ✔</button>
+  </section>
+
+  <!-- เสร็จสิ้น -->
+  <section id="p4" class="card center hidden">
+    <div style="font-size:70px">🎉</div>
+    <h2>ทำกิจกรรมเสร็จสิ้น</h2>
+    <p id="doneTime" style="font-size:20px"></p>
+    <p id="doneWin"></p>
+    <p id="doneDays"></p>
+    <p id="doneChange" style="font-weight:600"></p>
+    <p class="hint">อย่าลืมทำต่อเนื่อง 3–4 วัน<br>วันละ 2 ช่วง: 12:00–13:00 และ 17:00–18:00</p>
+    <button onclick="resetAll()">กลับหน้าแรก</button>
+  </section>
+
+  <!-- Admin login -->
+  <section id="pAL" class="card hidden">
+    <h2>เข้าสู่ระบบผู้ดูแล</h2>
+    <label>รหัสผ่าน Admin</label><input id="apw" type="text" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="off" placeholder="พิมพ์รหัสผ่าน">
+    <p id="eA" class="bad"></p>
+    <div class="row"><button class="ghost" onclick="show('p1')">ยกเลิก</button><button onclick="adminLogin()">เข้าสู่ระบบ</button></div>
+  </section>
+
+  <!-- Admin -->
+  <section id="pAD" class="hidden">
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <h2 style="margin:0">ตรวจสอบผล (Admin)</h2>
+        <div class="row">
+          <button class="ghost sm" onclick="exportCSV()">⬇ ส่งออก CSV</button>
+          <button class="ghost sm" onclick="logoutAdmin()">ออก</button>
+        </div>
+      </div>
+      <p class="hint">เห็นเฉพาะข้อมูลที่บันทึกบนเครื่อง/เบราว์เซอร์นี้</p>
+      <div style="overflow-x:auto"><table id="adminTable"></table></div>
+    </div>
+    <div class="card">
+      <h2>แนวโน้มความปวดรายคน</h2>
+      <select id="trendSel" onchange="drawTrend()"></select>
+      <div id="trend" style="margin-top:12px"></div>
+    </div>
+    <div id="detail" class="card hidden"></div>
+  </section>
+</div>
+
+<script>
+const ADMIN_PASSWORD = "admin1234"; // ← เปลี่ยนรหัสผ่านผู้ดูแลตรงนี้
+
+const LEVELS = [
+ {n:0,label:"ไม่มีอาการ",color:"#ffffff",face:"bigsmile",
+  ex:[["เอียงคอไปฝั่งซ้ายและขวาช้าๆ สลับกัน 30 วินาที",30],["ก้มหน้าเก็บคางชิดหน้าอกช้าๆ ค้างไว้ 30 วินาที",30],["เงยหน้าขึ้นช้าๆ ค้างไว้ 30 วินาที",30]]},
+ {n:1,label:"มีอาการเล็กน้อย",color:"#4caf50",face:"smile",
+  ex:[["เหยียดแขนไปฝั่งตรงข้าม ใช้มืออีกข้างดึงแขนเข้าหาตัว ค้างไว้ 15 วินาที แล้วเปลี่ยนข้าง ทำอีก 15 วินาที",30],["ยักไหล่ขึ้นสลับผ่อน 30 วินาที",30],["เอียงคอไปฝั่งซ้าย ใช้มือข้างเดียวกันช่วยดึงศีรษะ ค้างไว้ 15 วินาที แล้วเปลี่ยนข้าง ทำอีก 15 วินาที",30]]},
+ {n:2,label:"มีอาการปานกลาง",color:"#f6c945",face:"flat",
+  ex:[["ยกไหล่ขึ้นแล้วหมุนไปข้างหลัง 10 ครั้ง จากนั้นหมุนไปข้างหน้าอีก 10 ครั้ง",40],["ประสานมือไว้ด้านหลัง ดึงแขนไปด้านหลัง ค้างไว้ 30 วินาที",30],["ประสานมือที่ท้ายทอย กางศอกเข้าและออกสลับกัน 30 วินาที",30]]},
+ {n:3,label:"มีอาการมาก",color:"#f28c28",face:"frown",
+  ex:[["ประสานมือแล้วยืดแขนเหนือศีรษะ เงยศีรษะขึ้น ค้างไว้ 30 วินาที",30],["ประสานมือไว้ด้านหลัง เอียงศีรษะไปทางซ้ายค้างไว้ 15 วินาที จากนั้นเอียงไปทางขวาค้างไว้ 15 วินาที",30],["ประสานมือเหยียดแขนตึงเหนือศีรษะ เอียงตัวไปทางขวาค้างไว้ 15 วินาที เอียงไปทางซ้าย 15 วินาที",30]]},
+ {n:4,label:"มีอาการมากที่สุด",color:"#e53935",face:"cry",
+  ex:[["พนมมือไว้ทางด้านหลัง ค้างไว้ 30 วินาที",30],["ยกแขนข้างขวาขึ้น พับศอกลง ใช้มือข้างซ้ายช่วยกดศอก ค้างไว้ 15 วินาที และทำอีกข้างเหมือนกัน ค้างไว้ 15 วินาที",30],["พับแขนสองข้างขึ้น ใช้ปลายนิ้วแตะหัวไหล่ ยกหัวไหล่ขึ้นแล้วหมุนไปข้างหน้า 15 ครั้ง หมุนกลับข้างหลัง 15 ครั้ง",40]]}
+];
+const FILTERS=[["ปกติ","none"],["สดใส","brightness(1.1) saturate(1.25) contrast(1.05)"],["ผิวเนียน","blur(.7px) brightness(1.1) saturate(1.1)"],["พีช","sepia(.25) saturate(1.4) hue-rotate(-10deg) brightness(1.08)"],["มิ้นต์","hue-rotate(20deg) saturate(1.2) brightness(1.08)"],["ขาวดำ","grayscale(1) contrast(1.1)"]];
+
+function face(type,color){
+  const stroke="#2a9d8f";
+  const eyes={cry:'<path d="M38 52q7-6 14 0M68 52q7-6 14 0" stroke="#333" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M45 60q-4 14 0 20M75 60q-4 14 0 20" stroke="#4aa3ff" stroke-width="5" fill="none" stroke-linecap="round"/>'}[type]||'<circle cx="45" cy="52" r="5" fill="#333"/><circle cx="75" cy="52" r="5" fill="#333"/>';
+  const mouth={bigsmile:'<path d="M32 70q28 34 56 0z" fill="#fff" stroke="#333" stroke-width="4" stroke-linejoin="round"/>',smile:'<path d="M38 74q22 20 44 0" stroke="#333" stroke-width="4.5" fill="none" stroke-linecap="round"/>',flat:'<path d="M42 80h36" stroke="#333" stroke-width="4.5" stroke-linecap="round"/>',frown:'<path d="M38 88q22-20 44 0" stroke="#333" stroke-width="4.5" fill="none" stroke-linecap="round"/><path d="M34 40l16 6M86 40l-16 6" stroke="#333" stroke-width="4" stroke-linecap="round"/>',cry:'<path d="M40 92q20-18 40 0" stroke="#333" stroke-width="4.5" fill="none" stroke-linecap="round"/>'}[type];
+  return `<svg class="face" viewBox="0 0 120 120"><circle cx="60" cy="60" r="54" fill="${color}" stroke="${stroke}" stroke-width="4"/>${eyes}${mouth}</svg>`;
+}
+
+// ---------- IndexedDB ----------
+let _db;
+function db(){return _db||(_db=new Promise((res,rej)=>{const r=indexedDB.open("physio-nurse",1);
+  r.onupgradeneeded=()=>{const d=r.result;d.createObjectStore("sessions",{keyPath:"id",autoIncrement:true});const v=d.createObjectStore("videos",{keyPath:"id",autoIncrement:true});v.createIndex("sid","sid");};
+  r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}));}
+async function tx(store,mode,fn){const d=await db();return new Promise((res,rej)=>{const t=d.transaction(store,mode);const s=t.objectStore(store);const q=fn(s);t.oncomplete=()=>res(q&&q.result);t.onerror=()=>rej(t.error);});}
+const addRec=(s,o)=>tx(s,"readwrite",st=>st.add(o));
+const putRec=(s,o)=>tx(s,"readwrite",st=>st.put(o));
+const delRec=(s,k)=>tx(s,"readwrite",st=>st.delete(k));
+const allRec=s=>tx(s,"readonly",st=>st.getAll());
+const getRec=(s,k)=>tx(s,"readonly",st=>st.get(k));
+
+// ---------- state ----------
+const $=id=>document.getElementById(id);
+window.addEventListener("error",e=>{const c=document.getElementById("camErr");if(c)c.textContent="ข้อผิดพลาด: "+e.message;});
+window.addEventListener("unhandledrejection",e=>{const c=document.getElementById("camErr");if(c)c.textContent="ข้อผิดพลาด: "+(e.reason&&e.reason.message||e.reason);});
+let S={name:"",no:"",score:0,avg:0,level:0}, poseIdx=0, stream=null, facing="user", mirrored=true, filterCss="none", recorder=null, chunks=[], pending=[], busy=false;
+const PAGES=["p1","p2","p3","pPost","p4","pAL","pAD"];
+function show(id){PAGES.forEach(p=>$(p).classList.toggle("hidden",p!==id));if(id!=="p3")stopCam();window.scrollTo(0,0);}
+function levelOf(a){return a<=0.80?0:a<=1.60?1:a<=2.40?2:a<=3.20?3:4;}
+const fmtDT=d=>new Date(d).toLocaleString("th-TH",{dateStyle:"long",timeStyle:"medium"});
+function windowOf(d){const h=d.getHours();return h===12?"ช่วงเที่ยง (12:00–13:00)":h===17?"ช่วงเย็น (17:00–18:00)":"นอกช่วงเวลาที่กำหนด";}
+
+function goAssess(){
+  const name=$("name").value.trim(),no=$("no").value.trim(),sc=parseFloat($("score").value);
+  if(!name||!no||isNaN(sc)){$("e1").textContent="กรุณากรอกชื่อ เลขที่ และคะแนนให้ครบ";return;}
+  if(sc<0||sc>20){$("e1").textContent="คะแนนต้องอยู่ระหว่าง 0–20";return;}
+  $("e1").textContent="";
+  const avg=sc/5,lv=levelOf(avg);S={name,no,score:sc,avg,level:lv};
+  const L=LEVELS[lv];
+  $("who").textContent=name;$("faceBox").innerHTML=face(L.face,L.color);
+  $("avg").textContent=avg.toFixed(2);
+  $("lvPill").textContent="ระดับ "+lv;$("lvPill").style.background=L.color==="#ffffff"?"#2a9d8f":L.color;
+  $("lvText").textContent=L.label;
+  show("p2");
+}
+
+// ---------- camera ----------
+async function startCam(){
+  $("camErr").textContent="";stopCam();
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:facing,width:{ideal:1280},height:{ideal:960}},audio:false});
+    $("cam").srcObject=stream;applyView();
+  }catch(e){$("camErr").textContent="เปิดกล้องไม่ได้: กรุณาอนุญาตการใช้กล้องใน Safari (ต้องเปิดผ่าน https)";}
+}
+function stopCam(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}}
+function applyView(){const v=$("cam");v.classList.toggle("mirror",mirrored);v.style.filter=filterCss;}
+function toggleMirror(){mirrored=!mirrored;applyView();}
+function flipCam(){facing=facing==="user"?"environment":"user";mirrored=facing==="user";startCam();}
+function buildFilters(){
+  $("filters").innerHTML=FILTERS.map((f,i)=>`<div class="chip ${i===0?'on':''}" onclick="setFilter(${i},this)">${f[0]}</div>`).join("");
+}
+function setFilter(i,el){filterCss=FILTERS[i][1];document.querySelectorAll("#filters .chip").forEach(c=>c.classList.remove("on"));el.classList.add("on");applyView();}
+
+// ---------- activity ----------
+async function startActivity(){
+  poseIdx=0;pending=[];show("p3");buildFilters();await startCam();renderPose();
+}
+function renderPose(){
+  const L=LEVELS[S.level],ex=L.ex[poseIdx];
+  $("stepbar").innerHTML=L.ex.map((_,i)=>`<div class="${i<=poseIdx?'on':''}"></div>`).join("");
+  $("poseTitle").textContent=`ระดับ ${S.level} • ท่าที่ ${poseIdx+1} จาก 3`;
+  $("poseText").textContent=ex[0];
+  $("timer").textContent="";$("goBtn").disabled=false;$("goBtn").textContent="▶ เริ่มทำท่านี้";
+}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+async function startPose(){
+  if(busy)return;
+  if(!stream){await startCam();if(!stream)return;}
+  busy=true;$("goBtn").disabled=true;$("camErr").textContent="";
+  let blob=null;
+  try{
+    for(let c=3;c>0;c--){$("timer").textContent=c;await sleep(1000);}
+    const sec=LEVELS[S.level].ex[poseIdx][1];
+    let mime="";
+    try{for(const m of["video/mp4","video/webm;codecs=vp9","video/webm"]){if(window.MediaRecorder&&MediaRecorder.isTypeSupported(m)){mime=m;break;}}}catch(e){}
+    chunks=[];recorder=null;
+    try{
+      recorder=new MediaRecorder(stream,mime?{mimeType:mime}:undefined);
+      recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data);};
+      recorder.start(1000);$("rec").style.display="block";
+    }catch(e){recorder=null;$("camErr").textContent="บันทึกวิดีโอไม่ได้บนเครื่องนี้ แต่ยังทำกิจกรรมต่อได้";}
+    for(let t=sec;t>0;t--){$("timer").textContent=t;await sleep(1000);}
+    $("timer").textContent="✓";$("rec").style.display="none";
+    if(recorder){
+      blob=await new Promise(res=>{
+        const done=()=>res(chunks.length?new Blob(chunks,{type:recorder.mimeType||mime||"video/mp4"}):null);
+        recorder.onstop=done;
+        try{if(recorder.state!=="inactive")recorder.stop();else done();}catch(e){done();}
+        setTimeout(done,3000);
+      });
+    }
+  }catch(e){$("camErr").textContent="เกิดข้อผิดพลาด: "+(e&&e.message||e)+" (ข้ามไปท่าถัดไป)";}
+  pending.push({pose:poseIdx+1,blob,mime:blob&&blob.type});
+  busy=false;
+  if(poseIdx<2){poseIdx++;await sleep(600);renderPose();}
+  else{$("postScore").value="";$("ePost").textContent="";show("pPost");}
+}
+async function submitPost(){
+  const v=parseFloat($("postScore").value);
+  if(isNaN(v)||v<0||v>20){$("ePost").textContent="กรุณากรอกคะแนน 0–20";return;}
+  $("ePost").textContent="กำลังบันทึก...";
+  try{await finish(v);}catch(e){$("ePost").textContent="บันทึกไม่สำเร็จ: "+(e&&e.message||e)+" (กดอีกครั้งเพื่อลองใหม่)";}
+}
+async function finish(post){
+  const now=new Date(),dateKey=now.toISOString().slice(0,10).replace(/-/g,"")&&now.toLocaleDateString("sv-SE");
+  const rec={name:S.name,no:S.no,score:S.score,avg:S.avg,level:S.level,time:now.getTime(),date:dateKey,window:windowOf(now),onTime:windowOf(now)!=="นอกช่วงเวลาที่กำหนด",review:"",note:"",post:post,postAvg:post/5,postLevel:levelOf(post/5)};
+  const sid=await addRec("sessions",rec);
+  for(const p of pending){if(p.blob){try{await addRec("videos",{sid,pose:p.pose,blob:p.blob,mime:p.mime});}catch(e){console.warn("save video failed",e);}}}
+  const all=(await allRec("sessions")).filter(s=>s.name===S.name&&s.no===S.no);
+  const days=new Set(all.map(s=>s.date)).size;
+  $("doneTime").textContent="บันทึกเวลา: "+fmtDT(now);
+  $("doneWin").innerHTML=rec.onTime?"✅ "+rec.window:"⚠️ ทำนอกช่วงเวลาที่กำหนด (12:00–13:00 / 17:00–18:00)";
+  $("doneDays").textContent=`ทำแล้วสะสม ${days} วัน (เป้าหมาย 3–4 วัน)`;
+  const diff=rec.avg-rec.postAvg;
+  $("doneChange").textContent=`ค่าเฉลี่ยความปวด ก่อน ${rec.avg.toFixed(2)} → หลัง ${rec.postAvg.toFixed(2)} `+(diff>0?"(ลดลง 👏)":diff<0?"(เพิ่มขึ้น)":"(เท่าเดิม)");
+  show("p4");
+}
+function resetAll(){["name","no","score"].forEach(i=>$(i).value="");show("p1");}
+
+// ---------- admin ----------
+let adminOK=false;
+function openAdminLogin(){$("apw").value="";$("eA").textContent="";show("pAL");}
+function adminLogin(){if($("apw").value.trim().toLowerCase()===String(ADMIN_PASSWORD).trim().toLowerCase()){adminOK=true;show("pAD");renderAdmin();}else $("eA").textContent="รหัสผ่านไม่ถูกต้อง";}
+function logoutAdmin(){adminOK=false;$("detail").classList.add("hidden");show("p1");}
+async function renderAdmin(){
+  if(!adminOK)return;
+  const rows=(await allRec("sessions")).sort((a,b)=>b.time-a.time);
+  fillTrend(rows);
+  const days={};rows.forEach(r=>{const k=r.name+"|"+r.no;(days[k]=days[k]||new Set()).add(r.date);});
+  $("adminTable").innerHTML=`<tr><th>เวลาที่ทำ</th><th>ชื่อ</th><th>เลขที่</th><th>ระดับ ก่อน→หลัง</th><th>ช่วงเวลา</th><th>วันสะสม</th><th>ผลตรวจ</th><th></th></tr>`+
+   (rows.length?rows.map(r=>`<tr><td>${fmtDT(r.time)}</td><td>${esc(r.name)}</td><td>${esc(r.no)}</td><td>${r.level} (${r.avg.toFixed(2)})${r.post!=null?' → '+r.postLevel+' ('+r.postAvg.toFixed(2)+')':''}</td><td class="${r.onTime?'ok':'bad'}">${r.onTime?r.window:'นอกเวลา'}</td><td>${days[r.name+"|"+r.no].size}</td><td>${r.review==="ok"?'<span class="ok">ถูกต้อง</span>':r.review==="bad"?'<span class="bad">ต้องแก้ไข</span>':'-'}</td><td><button class="sm" onclick="openDetail(${r.id})">ดูวิดีโอ</button></td></tr>`).join(""):`<tr><td colspan="8" class="center">ยังไม่มีข้อมูล</td></tr>`);
+}
+let ALLROWS=[];
+function fillTrend(rows){
+  ALLROWS=rows;
+  const keys=[...new Set(rows.map(r=>r.name+"|"+r.no))];
+  const sel=$("trendSel"),cur=sel.value;
+  sel.innerHTML=keys.length?keys.map(k=>{const [n,no]=k.split("|");return `<option value="${esc(k)}">${esc(n)} (เลขที่ ${esc(no)})</option>`;}).join(""):'<option value="">ยังไม่มีข้อมูล</option>';
+  if(keys.includes(cur))sel.value=cur;
+  drawTrend();
+}
+function drawTrend(){
+  const k=$("trendSel").value,box=$("trend");
+  const rs=ALLROWS.filter(r=>r.name+"|"+r.no===k).sort((a,b)=>a.time-b.time);
+  if(!rs.length){box.innerHTML="";return;}
+  const W=700,H=260,pl=44,pr=16,pt=16,pb=56,n=rs.length;
+  const x=i=>pl+(n===1?(W-pl-pr)/2:i*(W-pl-pr)/(n-1)),y=v=>pt+(4-v)*(H-pt-pb)/4;
+  let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">`;
+  for(let v=0;v<=4;v++)s+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="#d8f3ea"/><text x="${pl-8}" y="${y(v)+4}" text-anchor="end" font-size="12" fill="#25524b">${v}</text>`;
+  const line=(key,color)=>{const pts=rs.map((r,i)=>r[key]!=null?[x(i),y(r[key])]:null).filter(Boolean);
+    return (pts.length>1?`<polyline fill="none" stroke="${color}" stroke-width="3" points="${pts.map(p=>p.join(",")).join(" ")}"/>`:"")+pts.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="5" fill="${color}"/>`).join("");};
+  s+=line("avg","#2a9d8f")+line("postAvg","#f28c28");
+  rs.forEach((r,i)=>{const d=new Date(r.time);s+=`<text x="${x(i)}" y="${H-30}" text-anchor="middle" font-size="11" fill="#25524b">${d.getDate()}/${d.getMonth()+1}</text><text x="${x(i)}" y="${H-16}" text-anchor="middle" font-size="11" fill="#25524b">${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}</text>`;});
+  s+=`</svg><p class="hint"><span style="color:#2a9d8f">●</span> ก่อนทำกิจกรรม &nbsp; <span style="color:#f28c28">●</span> หลังทำกิจกรรม (ค่าเฉลี่ย 0–4)</p>`;
+  box.innerHTML=s;
+}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+async function openDetail(id){
+  const r=await getRec("sessions",id);
+  const vids=(await allRec("videos")).filter(v=>v.sid===id).sort((a,b)=>a.pose-b.pose);
+  const L=LEVELS[r.level];
+  const d=$("detail");d.classList.remove("hidden");
+  d.innerHTML=`<h2>${esc(r.name)} (เลขที่ ${esc(r.no)}) • ระดับ ${r.level}</h2><p>${fmtDT(r.time)} — ${r.window}</p>`+
+   vids.map(v=>`<h3 style="margin:14px 0 4px">ท่าที่ ${v.pose}</h3><p class="hint" style="margin:0">${L.ex[v.pose-1][0]}</p><video class="rev" controls playsinline src="${URL.createObjectURL(v.blob)}"></video>`).join("")||"<p>ไม่มีวิดีโอ</p>";
+  d.innerHTML+=`<label>หมายเหตุ</label><textarea id="note" rows="2">${esc(r.note||"")}</textarea>
+   <div class="row" style="margin-top:12px"><button onclick="setReview(${id},'ok')">✔ ท่าถูกต้อง</button><button class="danger" onclick="setReview(${id},'bad')">✖ ต้องแก้ไข</button><button class="ghost" onclick="delSession(${id})">🗑 ลบ</button></div>`;
+  d.scrollIntoView({behavior:"smooth"});
+}
+async function setReview(id,val){const r=await getRec("sessions",id);r.review=val;r.note=$("note").value;await putRec("sessions",r);renderAdmin();alert("บันทึกผลตรวจแล้ว");}
+async function delSession(id){if(!confirm("ลบข้อมูลรายการนี้และวิดีโอทั้งหมด?"))return;
+  for(const v of (await allRec("videos")).filter(v=>v.sid===id))await delRec("videos",v.id);
+  await delRec("sessions",id);$("detail").classList.add("hidden");renderAdmin();}
+async function exportCSV(){
+  const rows=await allRec("sessions");
+  const h=["เวลา","ชื่อ","เลขที่","คะแนนรวมก่อน","ค่าเฉลี่ยก่อน","ระดับก่อน","คะแนนรวมหลัง","ค่าเฉลี่ยหลัง","ระดับหลัง","ช่วงเวลา","ผลตรวจ","หมายเหตุ"];
+  const lines=[h.join(",")].concat(rows.map(r=>[fmtDT(r.time),r.name,r.no,r.score,r.avg.toFixed(2),r.level,r.post??"",r.postAvg!=null?r.postAvg.toFixed(2):"",r.postLevel??"",r.window,r.review||"",r.note||""].map(x=>`"${String(x).replace(/"/g,'""')}"`).join(",")));
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+lines.join("\n")],{type:"text/csv"}));a.download="physio-nurse.csv";a.click();
+}
+</script>
+</body>
+</html>
